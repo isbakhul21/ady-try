@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="web_asset_javascript" name="web_asset_javascript" inherit_id="portal_web_reimburse">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/z_web_portal/static/src/DataTables/datatables.min.js"> </script>
+                <link rel="stylesheet" href="/z_web_portal/static/src/DataTables/datatables.min.css" />
+            </xpath>
+        </template>
+    </data>
+</odoo>
+

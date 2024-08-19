@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- [Reimbursement] -->
+        <menuitem id="z_reimbursement_root" name="Reimbursement" web_icon="z_reimbursement,static/description/icon.png" sequence="10"/>
+        <menuitem id="z_menu_reimburse_root" name="Reimbursement" parent="z_reimbursement_root" action="z_reimbursement.z_action_reimbursement" sequence="11"/>
+        <menuitem id="z_configuration" name="Configuration" parent="z_reimbursement_root" action="z_reimbursement.z_action_reimbursement" sequence="11"/>
+        <menuitem id="z_group_reimbursement" name="Tipe Golongan" parent="z_configuration" action="z_reimbursement.z_action_group_reimburse" sequence="1"/>
+        <menuitem id="z_category_reimbursement" name="Kategori Reimburse" parent="z_configuration" action="z_reimbursement.z_action_category_reimbursement" sequence="2"/>
+
+    </data>
+</odoo>

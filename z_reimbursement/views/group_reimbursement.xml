@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <!-- [Group Reimbursement Form] -->
+        <record id="z_group_reimbursement_form" model="ir.ui.view">
+            <field name="name">group.reimbursement.form</field>
+            <field name="model">group.reimbursement</field>
+            <field name="priority" eval="10"/>
+            <field name="arch" type="xml">
+                <form string="Group Reimbursement">
+                    <sheet>
+                        <group>
+                            <group>
+                               <field name="z_group" />
+                            </group>
+                            <group>
+                                <field name="z_amount_limit_reimburse" />
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- [Group Reimburse Tree] -->
+        <record id="z_group_reimburse_tree" model="ir.ui.view">
+            <field name="name">group.reimburse.tree</field>
+            <field name="model">group.reimbursement</field>
+            <field name="arch" type="xml">
+                <tree editable="bottom" open_form_view="True">
+                    <field name="z_group" />
+                    <field name="z_amount_limit_reimburse" />
+                </tree>
+            </field>
+        </record>
+
+
+        <!-- [Group Reimbursement Action] -->
+        <record id="z_action_group_reimburse" model="ir.actions.act_window">
+            <field name="name">Group Reimbursement</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">group.reimbursement</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                  (0, 0, {'view_mode': 'tree', 'view_id': ref('z_group_reimburse_tree')}),
+                  (0, 0, {'view_mode': 'form', 'view_id': ref('z_group_reimbursement_form')})]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_empty_folder">No data to display</p>
+                <p>Try to add some records, or make sure that there is at least one measure and no active filter in the search bar.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>

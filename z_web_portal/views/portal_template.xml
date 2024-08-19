@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <data>
+        <template id="portal_web_reimburse">
+            <t t-call="website.layout">
+                <t t-call="portal.portal_table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Sales Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="sale_order" t-as="sale_orders">
+                            <tr>
+                                <td>
+                                    <p t-field="sale_orders.name"/>
+                                </td>
+                                <td>
+                                    <p t-field="sale_orders.z_sale_type"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </t>
+            </t>
+        </template>
+    </data>
+</odoo>
+

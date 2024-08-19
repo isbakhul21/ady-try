@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <!-- [Reimbursement Form] -->
+        <record id="z_employee_reimburse_form" model="ir.ui.view">
+            <field name="name">employee.reimburse.form</field>
+            <field name="model">employee.reimburse</field>
+            <field name="priority" eval="10"/>
+            <field name="arch" type="xml">
+                <form string="Reimbursement">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="z_name" string="Description" class="oe_inline"/>
+                            <h1><field name="z_name" class="oe_inline"/></h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="z_category"/>
+                                <field name="z_group"/>
+                            </group>
+                            <group>
+
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- [Reimbursement Tree] -->
+        <record id="z_employee_reimburse_tree" model="ir.ui.view">
+            <field name="name">employee.reimburse.tree</field>
+            <field name="model">employee.reimburse</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="z_name"/>
+                    <field name="z_category"/>
+                    <field name="z_group"/>
+                </tree>
+            </field>
+        </record>
+
+
+        <!-- [Reimbursement Action] -->
+        <record id="z_action_reimbursement" model="ir.actions.act_window">
+            <field name="name">Employee Reimburse</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">employee.reimburse</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                  (0, 0, {'view_mode': 'tree', 'view_id': ref('z_employee_reimburse_tree')}),
+                  (0, 0, {'view_mode': 'form', 'view_id': ref('z_employee_reimburse_form')})]"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_empty_folder">No data to display</p>
+                <p>Try to add some records, or make sure that there is at least one measure and no active filter in the search bar.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>
