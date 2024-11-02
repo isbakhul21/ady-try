@@ -5,6 +5,11 @@
         <!-- [Reimbursement] -->
         <menuitem id="z_reimbursement_root" name="Reimbursement" web_icon="z_reimbursement,static/description/icon.png" sequence="10"/>
         <menuitem id="z_menu_reimburse_root" name="Reimbursement" parent="z_reimbursement_root" action="z_reimbursement.z_action_reimbursement" sequence="11"/>
+        <menuitem id="z_menu_invoice_rab_root" name="Rab Loan" parent="z_reimbursement_root" action="z_reimbursement.z_action_rem_rab_loan" sequence="11"/>
+        <menuitem id="z_menu_todo_list" name="Todo List" parent="z_reimbursement_root" action="z_reimbursement.action_owl_todo_list" sequence="11"/>
+        <menuitem id="z_menu_todo_list_js" name="Todo List OWL Js" parent="z_reimbursement_root" action="z_reimbursement.action_owl_todo_list_js" sequence="11"/>
+
+
         <menuitem id="z_configuration" name="Configuration" parent="z_reimbursement_root" action="z_reimbursement.z_action_reimbursement" sequence="11"/>
         <menuitem id="z_group_reimbursement" name="Tipe Golongan" parent="z_configuration" action="z_reimbursement.z_action_group_reimburse" sequence="1"/>
         <menuitem id="z_category_reimbursement" name="Kategori Reimburse" parent="z_configuration" action="z_reimbursement.z_action_category_reimbursement" sequence="2"/>

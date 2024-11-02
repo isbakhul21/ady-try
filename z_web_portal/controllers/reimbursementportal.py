@@ -9,6 +9,17 @@ logger = logging.getLogger(__name__)
 
 class ReimbursementPortal(http.Controller):
 
+    @http.route('/my/testtable', type='http', csrf=False, auth='public', website=True)
+    def getMenuModuleTable(self, **kw):
+        print("MENUUU")
+
+        sale_order_id = request.env['sale.order'].sudo().search([])
+
+        return request.render("z_web_portal.portal_web_reimburse", {
+            'sale_order_table': sale_order_id,
+        })
+
+
     @http.route('/my/menumodule', type='http', csrf=False, auth='public', website=True)
     def getMenuModule(self, **kw):
         print("MENUUU")
@@ -31,21 +42,14 @@ class ReimbursementPortal(http.Controller):
     @http.route('/my/submit', type='http', csrf=False, auth='public', website=True)
     def submitReimbursement(self, **post):
         # Extract data from form submission
-        name = post.get('name')
-        age = int(post.get('age', 0))
-        email = post.get('email')
-
-        if age < 16:
-            # Jika umur kurang dari 16, kirim pesan kesalahan
-            return request.render('z_web_portal.custom_form_template', {
-                'error_message': "Anda harus berumur 16 tahun atau lebih untuk mengirim form ini."
-            })
+        nip = post.get('NIP')
+        customer = post.get('Customer')
+        print('customer : ', customer)
 
         # Create a new record in the employee.reimburse model
         reimbursement = request.env['employee.reimburse'].sudo().create({
-            'z_name': name,
-            'z_age': age,
-            'z_email': email,
+            'z_name': nip,
+            'z_customer': customer,
         })
 
         print(f"Reimbursement created: {reimbursement}")

@@ -5,7 +5,7 @@
     "version": "1.0.0",
     'category': 'Sales',
     "license": "LGPL-3",
-    "depends": ['base'],
+    "depends": ['base','sale'],
     "data": [
         # security
 

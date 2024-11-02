@@ -2,3 +2,5 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 z_reimbursement.access_employee_reimburse,access_employee_reimburse,z_reimbursement.model_employee_reimburse,base.group_user,1,1,1,1
 z_reimbursement.access_group_reimbursement,access_group_reimbursement,z_reimbursement.model_group_reimbursement,base.group_user,1,1,1,1
 z_reimbursement.access_category_reimbursement,access_category_reimbursement,z_reimbursement.model_category_reimbursement,base.group_user,1,1,1,1
+z_reimbursement.access_rab_loan_rem,access_rab_loan_rem,z_reimbursement.model_rab_loan_rem,,1,1,1,1
+z_reimbursement.access_owl_todo_list,access_owl_todo_list,z_reimbursement.model_owl_todo_list,,1,1,1,1

@@ -3,7 +3,7 @@
     <data>
 
 
-        <!-- [Reimbursement Form] -->
+        <!-- [Rab Form] -->
         <record id="z_employee_reimburse_form" model="ir.ui.view">
             <field name="name">employee.reimburse.form</field>
             <field name="model">employee.reimburse</field>
@@ -17,8 +17,11 @@
                         </div>
                         <group>
                             <group>
+                                <field name="z_customer"/>
                                 <field name="z_category"/>
                                 <field name="z_group"/>
+                                <field name="z_document_return_ids" widget="many2many_binary"/>
+                                <button name="action_test_anything" type="object" string="Generate Anything" class="btn-primary" data-hotkey="q"/>
                             </group>
                             <group>
 
@@ -29,7 +32,7 @@
             </field>
         </record>
 
-        <!-- [Reimbursement Tree] -->
+        <!-- [reimburse Tree] -->
         <record id="z_employee_reimburse_tree" model="ir.ui.view">
             <field name="name">employee.reimburse.tree</field>
             <field name="model">employee.reimburse</field>
@@ -38,12 +41,14 @@
                     <field name="z_name"/>
                     <field name="z_category"/>
                     <field name="z_group"/>
+                    <field name="z_document_return_ids" widget="attachment"/>
+                    <button name="action_preview" string="Preview" type="object" class="oe_highlight"/>
                 </tree>
             </field>
         </record>
 
 
-        <!-- [Reimbursement Action] -->
+        <!-- [Rab Action] -->
         <record id="z_action_reimbursement" model="ir.actions.act_window">
             <field name="name">Employee Reimburse</field>
             <field name="type">ir.actions.act_window</field>

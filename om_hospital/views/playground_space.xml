@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+
+
+<!--    Disini adalah untuk menampilkan form untuk mendapatkan inputan ketika membuat data baru-->
+    <record id="view_playground_space_form" model="ir.ui.view">
+            <field name="name">playground.space.form</field>
+            <field name="model">playground.space</field>
+            <field name="arch" type="xml">
+                <form>
+                        <sheet>
+                            <group>
+                             <field name="model_id" />
+                             <field name="code" />
+                            </group>
+                            <group>
+                                <button name="result_code" string="Execute" type="object" class="oe_highlight" />
+                            </group>
+                            <group>
+                                <field name="result" />
+                            </group>
+                        </sheet>
+                </form>
+            </field>
+    </record>
+
+
+
+<!--    Dibawah ini adalah untuk menampilkan action-->
+    <record id="action_playground_space" model="ir.actions.act_window">
+            <field name="name">PlaygroundSpace</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">playground.space</field>
+            <field name="view_mode">form</field>
+
+    </record>
+
+    <menuitem id="menu_technical" name="Technical" sequence="110" parent="menu_hospital_root" >
+        <menuitem id="menu_playground_space" name="Playground Space" action="action_playground_space" sequence="10" />
+    </menuitem>
+
+
+
+</odoo>
+

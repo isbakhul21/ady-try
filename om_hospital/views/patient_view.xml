@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+<!--    disini untuk membuat list/tree view untuk melihat data yang susdah di insert-->
+    <record id="view_hospital_patient_tree" model="ir.ui.view">
+            <field name="name">hospital.patient.tree</field>
+            <field name="model">hospital.patient</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" string="Patient Name" />
+                    <field name="ref"  />
+                    <field name="gender" />
+                    <field name="age"  />
+                    <field name="tall" />
+                    <field name="weight_body"  />
+                    <field name="proportion" />
+                </tree>
+            </field>
+        </record>
+
+<!--    Disini adalah untuk menampilkan form untuk mendapatkan inputan ketika membuat data baru-->
+    <record id="view_hospital_patient_form" model="ir.ui.view">
+            <field name="name">hospital.patient.form</field>
+            <field name="model">hospital.patient</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <field name="image" widget="image" class="oe_avatar"/>
+                        <group>
+                            <group>
+                                <field name="name" string="Patient Name"/>
+                                <field name="ref"  />
+                                <field name="date_of_birth"  />
+                                <field name="age" />
+                                <field name="active" invisible="1"/>
+                            </group>
+                            <group>
+                                <field name="gender"/>
+                                <field name="tall"/>
+                                <field name="weight_body"/>
+                                <field name="proportion"/>
+
+                                <field name="id_payroll" />
+                                <field name="nip_payroll" />
+                                <field name="nik_payroll" />
+                                <field name="name_payroll" />
+                            </group>
+                        </group>
+                    </sheet>
+
+<!--                    disini untuk membuat chatter-->
+                    <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+
+
+                </div>
+                </form>
+            </field>
+        </record>
+
+<!--        disini untuk menampilkan search view-->
+        <record id="view_hospital_patient_search" model="ir.ui.view">
+            <field name="name">hospital.patient.search</field>
+            <field name="model">hospital.patient</field>
+            <field name="arch" type="xml">
+                <search>
+                     <field name="name" string="Patient Name" filter_domain="['|','|',('name','like','self'),('ref','like','self')]"/>
+                     <field name="ref"  />
+                     <field name="gender" />
+                     <filter name="female_gender" string="Male" domain="[('gender','=','male')]" />
+                     <filter name="female_gender" string="Female" domain="[('gender','=','female')]" />
+                    <group expand="0" string="Group By">
+                        <filter string="ref" name="group_by_ref" context="{'group_by':'ref'}" />
+                    </group>
+                    <searchpanel>
+                        <field name="gender" icon="fa-users" select="multi" enable_counters="1" />
+                    </searchpanel>
+                </search>
+            </field>
+        </record>
+
+
+
+<!--    Dibawah ini adalah untuk menampilkan action-->
+    <record id="action_hospital_patient" model="ir.actions.act_window">
+            <field name="name">Patients</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">hospital.patient</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smilling_face">
+                    No data to display, please insert patient
+                </p>
+            </field>
+        </record>
+
+    <menuitem id="menu_patient"
+              name="Patient"
+              action="action_hospital_patient"
+              parent="menu_patient_master"
+              sequence="0" />
+
+</odoo>

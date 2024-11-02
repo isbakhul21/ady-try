@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Page 1 for userportal1 -->
+    <template id="portal_page_1" name="Portal Page 1">
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Welcome to Page 1</h1>
+                <p>This page is only accessible by userportal1.</p>
+            </div>
+        </t>
+    </template>
+
+    <!-- Page 2 for userportal2 -->
+    <template id="portal_page_2" name="Portal Page 2">
+        <t t-call="website.layout">
+            <div class="container">
+                <h1>Welcome to Page 2</h1>
+                <p>This page is only accessible by userportal2.</p>
+            </div>
+        </t>
+    </template>
+
+</odoo>

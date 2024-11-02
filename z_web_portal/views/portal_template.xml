@@ -11,9 +11,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="sale_order" t-as="sale_orders">
+                        <t t-foreach="sale_order_table" t-as="sale_orders">
                             <tr>
                                 <td>
+<!--                                    <a t-att-href="'/web#id=%d&model=sale.order&view_type=form'%order.id" target="_blank">-->
+<!--                                        <t t-field="sale_orders.name"/>-->
+<!--                                    </a>-->
                                     <p t-field="sale_orders.name"/>
                                 </td>
                                 <td>

@@ -14,6 +14,16 @@
                     </t>
                     <form action="/my/submit" method="post" id="reimbursement_form">
                         <div class="form-group">
+                            <label for="NIP">NIP:</label>
+                            <input type="number" name="NIP" class="form-control" required="required"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="Customer">Customer:</label>
+                            <select type="text" name="Customer" id="Customer" class="form-control" required="required">
+                                <!-- Options will be populated by JavaScript -->
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label for="name">Name:</label>
                             <input type="text" name="name" class="form-control" required="required"/>
                         </div>
@@ -21,17 +31,43 @@
                             <label for="name">Type Employee:</label>
                             <input type="text" name="type_employee" class="form-control" required="required"/>
                         </div>
-                        <div class="form-group">
-                            <label for="age">Age:</label>
-                            <input type="number" name="age" min="5" class="form-control" required="required" id="age_input"/>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email:</label>
-                            <input type="email" name="email" class="form-control" required="required"/>
-                        </div>
                         <button type="submit" class="btn btn-primary" style="margin:30px;">Submit</button>
                     </form>
                 </div>
+                <script>
+                    console.log('API JALAN');
+                   document.addEventListener('DOMContentLoaded', function() {
+                        const customerSelect = document.getElementById('Customer');
+                        // Fetch data from API
+                        fetch('http://localhost:8069/api-customer?token=ytH5Q2owbcHGHRqOpY2XcO1Y6keWqsDcDVWk1TaGGa8Yf2bU8PoV', {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        .then(response => {
+                            return response.json()
+                        })
+                        .then(data => {
+                            data[0].data.forEach(y => {
+                                console.log('y : ', y)
+                                if (data === undefined) {
+                                    console.info('data undefined')
+                                } else {
+                                    console.info('defined')
+                                }
+
+                                const option = document.createElement('option');
+                                option.value = y.id;
+                                option.textContent = `${y.company_name}`;
+                                customerSelect.appendChild(option);
+                            })
+                        })
+                        .catch(error => {
+                            console.error('Error fetching customer data:', error);
+                        });
+                    });
+                </script>
             </t>
         </template>
 
@@ -51,7 +87,6 @@
                 </div>
                 <a href="/my/pagereimburse">
                     <img src="http://localhost:8069/web/content/30110" alt="Reimburse Logo" style="width:200px; height:200px;border-radius:20px;border: 1px solid #000;margin:30px;"/>
-<!--                    <img src="https://adi-system-adidata-dev-13174375.dev.odoo.com/web/content/1" alt="Reimburse Logo" style="width:200px; height:200px;border-radius:20px;border: 1px solid #000;margin:30px;"/>-->
                 </a>
             </t>
         </template>

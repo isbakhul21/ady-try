@@ -5,7 +5,7 @@
     "version": "1.0.0",
     'category': 'Reimbursement',
     "license": "LGPL-3",
-    "depends": ['z_base'],
+    "depends": ['z_base','z_management_equipment','z_contract','web'],
     "data": [
         # security
         'security/ir.model.access.csv',
@@ -20,6 +20,9 @@
         'views/reimbursement.xml',
         'views/group_reimbursement.xml',
         'views/category_reimbursement.xml',
+        'views/rab_loan.xml',
+        'views/todo_list.xml',
+        # 'views/res_partner.xml',
 
         # data
         'data/ir_ui_menu.xml',
@@ -28,4 +31,16 @@
     'installable': True,
     'auto_install': False,
     'application': True,
+    'assets': {
+            'web.assets_backend': [
+                'z_reimbursement/static/src/components/*/*.js',
+                'z_reimbursement/static/src/components/*/*.xml',
+                'z_reimbursement/static/src/components/*/*.scss',
+
+
+
+                # 'z_reimbursement/static/src/xml/preview_attachment.js',
+                # 'z_reimbursement/static/src/xml/preview_attachment.js',
+            ],
+        },
 }
