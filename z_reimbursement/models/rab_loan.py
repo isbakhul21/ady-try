@@ -1,12 +1,14 @@
+from docutils.nodes import contact
 from odoo import api, fields, models, _
 from datetime import datetime, date, timedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 # library excel
+import pandas as pd
+from openpyxl import Workbook
 import xlsxwriter
 import base64
 import io
-
 
 def get_column_letter(col_num):
     result = ""
@@ -111,11 +113,13 @@ class RabLoanRem(models.TransientModel):
                 month_start_column += 1
 
 
-            #Start Calculate Contratct
+            #Start Calculate Contract
             contract_increment = 0
             contract_cell_increment = 6
             product_cell_increment = 6
             grand_total = []  # data amount akan ditambah di sini
+            data_product_amount = []
+
             for contract_id in contract_ids:
                 if contract_id.z_line_ids and contract_id.z_line_ids.filtered(lambda x: x.z_sale_order_id):
                     sale_order_ids = contract_id.z_line_ids.mapped('z_sale_order_id').filtered(lambda x: x.z_termin_payment_ids.filtered(lambda term: not term.z_invoice_id or term.z_invoice_id and term.z_invoice_id.payment_state != 'paid'))
@@ -163,19 +167,13 @@ class RabLoanRem(models.TransientModel):
                             worksheet.write(cell_row, jangka_waktu_kontrak, title_desc_format)
                             cell_row = f'G{contract_cell_increment}'
                             worksheet.write(cell_row, contract_id.z_amount_total, currency_contract_format)
-                        contract_cell_increment += 1
+                        contract_cell_increment += 4
                     #End Calculate Contratct
 
                     #SO Per Month Calculate
-                    data_product = []
-                    data_product_amount = []
-                    month_cell_increment = 8
-
-
                     for sale_order_id in sale_order_ids:
                         total_invoice_amount = 0
                         total_paid_amount = 0
-                        data_product_amount = []
                         for term in sale_order_id.z_termin_payment_ids:
                             total_invoice_amount += term.z_invoice_amount_total
                             if term.z_invoice_status.lower() == 'paid':
@@ -188,7 +186,7 @@ class RabLoanRem(models.TransientModel):
 
                         last_price = [price - (price * paid_percentage / 100) for price in term.z_sale_order_id.order_line.mapped('z_price_total_contract')]
 
-                        amount_sales_order = sum(last_price)
+
 
                         z_calculate_month = term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_calculate_month
                         z_month = term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_month
@@ -198,15 +196,13 @@ class RabLoanRem(models.TransientModel):
                         if z_calculate_month > 0:
                             price_divide_month = [price / z_calculate_month for price in last_price]
                         else:
-
                             price_divide_month = [0 for price in last_price]
 
-
-
-
+                        amount_sales_order = sum(price_divide_month)
                         data_product_amount.append(
                             (
                                 paid_percentage,
+                                term.z_sale_order_id.z_contract_id.id,
                                 term.z_sale_order_id.name,
                                 term.z_sale_order_id.order_line.mapped('product_id.name'),
                                 term.z_sale_order_id.order_line.mapped('z_price_total_contract'),
@@ -220,14 +216,73 @@ class RabLoanRem(models.TransientModel):
                             )
                         )
 
-
-                        print('paid_percentages',data_product_amount)
-
-
+            # print(month_shelter_sorted)
+            print('data_product_amount : ', data_product_amount)
 
 
+            index_horizontal = 8
+            index_vertical = 5
+            data_contract = []
+            data_total_amount_sales = []
 
 
+            for products in data_product_amount:
+                result_month_year = products[9]
+                contract_id = products[1]
+                sales_amount = products[10]
+                data_total_amount_sales.append((contract_id,result_month_year,sales_amount))
+                if int(products[1]) not in data_contract:
+                    if data_contract:
+                        index_vertical += 3
+                    data_contract.append(int(products[1]))
+
+                for product, last_price in zip(products[3],products[11]):
+                    index_vertical += 1
+                    cell_row = f'H{index_vertical}'
+                    worksheet.write(cell_row, product, role_format)
+
+
+                    months_not_in_month_shelter_sorted = [month for month in month_shelter_sorted if month not in result_month_year]
+                    for x_month in result_month_year:
+                        if x_month in month_shelter_sorted:
+                            month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
+                            cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
+                            worksheet.write(cell_combine, last_price, currency_format)
+
+                    for x_month in months_not_in_month_shelter_sorted:
+                        month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
+                        cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
+                        worksheet.write(cell_combine, 0, currency_format)
+
+            print('data_total_amount_sales',data_total_amount_sales)
+            index_vertical = 5
+            index_horizontal = 8
+            data_contract_total = []
+            for products in data_product_amount:
+            
+                if int(products[1]) not in data_contract_total:
+
+                    data_product = [d[3] for d in data_product_amount if products[1] == d[1]]
+                    data_product_final = []
+                    for d in data_product:
+                        for e in d:
+                            if not e in data_product_final:
+                                data_product_final.append(e)
+                    index_vertical = index_vertical + len(data_product_final) + 1
+                    if data_contract_total:
+                        index_vertical += 2
+                    data_contract_total.append(int(products[1]))
+                for x_month in products[9]:
+                    if x_month in month_shelter_sorted:
+                        product_amount_final = 0
+                        for p in data_product_amount:
+                            if p[1] == products[1] and x_month in p[9]:
+                                product_amount_final += float(p[10])
+                        month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
+                        cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
+                        worksheet.write(cell_combine, product_amount_final, currency_format)
+
+            # looping for  grand total
 
 
 
