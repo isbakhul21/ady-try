@@ -12,14 +12,10 @@ class HospitalAppointment(models.Model):
 
     def action_test(self):
         print("TOMBOL DI KLIK cok ")
-        return {
-            'name': 'Maintenance Equipment',
-            'type': 'ir.actions.act_window',
-            'res_model': 'maintenance.equipment',
-            'view_mode': "tree,form",
-            'view_id': self.env.ref('maintenance.hr_equipment_view_tree').id,
-            'target': 'new',
-        }
+        sales_order_ids = self.env['sale.order'].sudo().search([])
+        for product in sales_order_ids:
+            print(product.order_line.order_id.id)
+            print(product.order_line.mapped('price_unit'))
 
     patient_id = fields.Many2one('hospital.patient', string="Patient")
     ref = fields.Char(string='Reference')
