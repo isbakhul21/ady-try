@@ -21,6 +21,7 @@
         'views/group_reimbursement.xml',
         'views/category_reimbursement.xml',
         'views/rab_loan.xml',
+        'views/rab_loan_product.xml',
         'views/todo_list.xml',
         # 'views/res_partner.xml',
 

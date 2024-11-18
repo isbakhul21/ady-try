@@ -1,4 +1,5 @@
 from docutils.nodes import contact
+from jsonschema.exceptions import relevance
 from odoo import api, fields, models, _
 from datetime import datetime, date, timedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
@@ -6,6 +7,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 # library excel
 import pandas as pd
 from openpyxl import Workbook
+from collections import defaultdict
 import xlsxwriter
 import base64
 import io
@@ -35,16 +37,16 @@ def generate_months(z_calculate_month, z_start_month, z_year):
     return months
 
 
-class RabLoanRem(models.TransientModel):
-    _name = "rab.loan.rem"
-    _description = "Rab Loan Rem"
+class RabLoanProduct(models.TransientModel):
+    _name = "rab.loan.product"
+    _description = "Rab Loan Product"
     _order = "id desc"
 
     z_partner_id = fields.Many2one('res.partner',string='Customer',tracking=True)
     z_amount_percent_rab = fields.Float(string="Persen RAB",tracking=True)
 
-    def action_generate(self):
-        print('action_generate')
+    def action_generate_loan_product(self):
+        print('action_generate product Loan')
         if int(self.z_amount_percent_rab) == 0:
             raise ValidationError("Percent RAB Cannot Be Equal to 0")
         timestamp = round(datetime.now().timestamp(), 3)
@@ -55,7 +57,7 @@ class RabLoanRem(models.TransientModel):
             # config column
             title_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1, 'bg_color': 'yellow'})
             title_desc_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'border': 1})
-            role_format = workbook.add_format({'border': 1})
+            role_format = workbook.add_format({'border': 1,'align': 'center', 'valign': 'vcenter'})
             currency_format = workbook.add_format({'num_format': '"Rp" #,##0.00', 'border': 1})
             currency_contract_format = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '"Rp" #,##0.00', 'border': 1})
             currency_total_format = workbook.add_format({'num_format': '"Rp" #,##0.00', 'border': 1, 'bg_color': 'yellow'})
@@ -91,9 +93,10 @@ class RabLoanRem(models.TransientModel):
             # checking data contract
             data_contract_ids = []
             contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_state','not in',('closed','cancel'))])
-            # contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_name','in',('CT/2024/08/00079','CT/2024/08/00078','CT/2024/08/00080')),('z_state','not in',('closed','cancel'))])
-            # contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_name','=','CT/2024/08/00079'),('z_state','not in',('closed','cancel'))])
+            # contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_name','in',('CT/2024/11/00112','CT/2024/11/00111','CT/2024/11/00113')),('z_state','not in',('closed','cancel'))])
+            # contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_name','=','CT/2024/07/00048'),('z_state','not in',('closed','cancel'))])
             # contract_ids = self.env['res.contract'].sudo().search([('z_partner_id','=',self.z_partner_id.id),('z_journal_id','!=',False),('z_name','=','CT/2024/10/00108'),('z_state','not in',('closed','cancel'))])
+
             for contract_id in contract_ids:
                 journal_ids = str(contract_id.z_journal_id.name).split('-')
                 if len(journal_ids) > 1 and journal_ids[1].strip(' []') == 'ESCROW':
@@ -122,17 +125,27 @@ class RabLoanRem(models.TransientModel):
             product_cell_increment = 6
             grand_total = []  # data amount akan ditambahkan di sini
             data_product_amount = []
+            data_object_contract_gross = []
 
             for contract_id in contract_ids:
                 if contract_id.z_line_ids and contract_id.z_line_ids.filtered(lambda x: x.z_sale_order_id):
-                    sale_order_ids = contract_id.z_line_ids.mapped('z_sale_order_id').filtered(lambda x: x.z_termin_payment_ids.filtered(lambda term: not term.z_invoice_id or term.z_invoice_id and term.z_invoice_id.payment_state != 'paid'))
-                    data_product_variant = []
+                    sale_order_ids = contract_id.z_line_ids.mapped('z_sale_order_id').filtered(
+                        lambda x: x.z_termin_payment_ids.filtered(lambda term: not term.z_invoice_id or term.z_invoice_id and term.z_invoice_id.payment_state != 'paid'))
+
+                    # Menggunakan set untuk menghindari produk duplikat
+                    data_product_variant = set()
+                    # print("data_product_amount",data_product_variant)
+
                     # Kumpulkan semua product_id.id dari sale_order_id.order_line, termasuk yang duplikat
                     for sale_order_id in sale_order_ids:
                         for line_id in sale_order_id.order_line:
-                            data_product_variant.append(line_id.product_id.id)
-                    # Tentukan jumlah baris sesuai dengan jumlah produk (termasuk duplikat)
+                            product_id = line_id.product_id.name
+                            # print("product_id",product_id)
+                            data_product_variant.add(product_id)  # Menambahkan ke set
+
+                    # Tentukan jumlah baris sesuai dengan jumlah produk (tanpa duplikat)
                     length_product = len(data_product_variant)
+                    # print("length_product",length_product)
                     if length_product:
                         contract_increment += 1
 
@@ -157,7 +170,7 @@ class RabLoanRem(models.TransientModel):
                             cell_row = f'G{contract_cell_increment}:G{contract_cell_increment + length_product - 1}'
                             worksheet.merge_range(cell_row, contract_id.z_amount_total, currency_contract_format)
 
-                            # Tambahkan sesuai jumlah produk (termasuk duplikat)
+                            # Tambahkan sesuai jumlah produk (tanpa duplikat)
                             contract_cell_increment = contract_cell_increment + length_product - 1
 
                         # Pengaturan jika hanya terdapat satu produk
@@ -182,153 +195,133 @@ class RabLoanRem(models.TransientModel):
                             worksheet.write(cell_row, contract_id.z_amount_total, currency_contract_format)
 
                         # Tambahkan baris setelah proses perhitungan untuk kontrak selesai
-                        contract_cell_increment += 4
+                        contract_cell_increment += 5
                     #End Calculate Contratct
 
-                    #SO Per Month Calculate
+                    #SO per Month
+                    #ingat nanti data_object_contract di taro di awal loop
                     for sale_order_id in sale_order_ids:
                         total_invoice_amount = 0
-                        total_paid_amount = 0
+                        total_paid_invoice = 0
                         for term in sale_order_id.z_termin_payment_ids:
                             total_invoice_amount += term.z_fixed_amount
                             if term.z_invoice_status == 'paid':
-                                total_paid_amount += term.z_invoice_amount_total
-
+                                total_paid_invoice += term.z_invoice_amount_total
                         if total_invoice_amount > 0:
-                            paid_percentage = (total_paid_amount / total_invoice_amount) * 100
+                            paid_percentage = (total_paid_invoice / total_invoice_amount)
                         else:
                             paid_percentage = 0
 
-                        relevant_order_lines = term.z_sale_order_id.order_line
-                        last_price = [price - (price * paid_percentage / 100) for price in term.z_sale_order_id.order_line.mapped('z_price_total_contract')]
-
-
-
+                        relevance_order_lines = sale_order_id.order_line
+                        data_contract = [contract.z_contract_id.id for contract in sale_order_id]
+                        data_sales_order = [sale_order.name for sale_order in sale_order_id]
+                        data_product = [product.product_id.name for product in relevance_order_lines]
+                        data_product_final = [data for data in data_product]
+                        data_product_price = [product_price.z_price_total_contract for product_price in relevance_order_lines]
+                        term_paid_percentage = paid_percentage
+                        price_paid = [price * term_paid_percentage for price in data_product_price]
+                        gross_price = [price - paid for price, paid in zip(data_product_price, price_paid)]
                         z_calculate_month = term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_calculate_month
                         z_month = term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_month
                         z_year = term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_year
-                        result_month_year = generate_months(z_calculate_month, int(z_month), int(z_year))
+                        product_month_year = generate_months(z_calculate_month, int(z_month), int(z_year))
+                        final_price = [price / z_calculate_month if z_calculate_month > 0 else 0 for price in gross_price]
 
-                        if z_calculate_month > 0:
-                            price_divide_month = [price / z_calculate_month for price in last_price]
-                        else:
-                            price_divide_month = [0 for price in last_price]
-
-                        amount_sales_order = sum(price_divide_month)
-                        data_product = [x.product_id.name for x in relevant_order_lines]
-                        data_product_price = [x.z_price_total_contract for x in relevant_order_lines]
-
-                        data_product_amount.append(
-                            (
-                                paid_percentage,
-                                term.z_sale_order_id.z_contract_id.id,
-                                term.z_sale_order_id.name,
-                                data_product,
-                                data_product_price,
-                                last_price,
-                                term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_calculate_month,
-                                term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_month,
-                                term.z_sale_order_id.z_contract_id.z_line_ids.filtered(lambda t: t.z_sale_order_id.id == term.z_sale_order_id.id).z_year,
-                                result_month_year,
-                                amount_sales_order,
-                                price_divide_month,
-
-                            )
-                        )
-
-            # print('month_shelter_sorted',month_shelter_sorted)
-            # print('data_product_amount : ', data_product_amount)
+                        for product, price in zip(data_product, final_price):
+                            data_object_contract_gross.append([data_contract,data_sales_order, [product, price, product_month_year]])
 
 
-            index_horizontal = 8
+            print("month_shelter_sorted",month_shelter_sorted)
+            # print("data_object_contract_gross",data_object_contract_gross)
+            # for datas in data_object_contract_gross:
+            #     print("DATAS PR",datas[2][1])
+            #     print("Tyepe",type(datas[2][1]))
+            # for month_year in data_object_contract_gross[2][2][2]:
+            #     print("MONTH YEAR", month_year)
+
+            # Mengelompokkan data berdasarkan kontrak, produk, dan bulan
+            grouped_data = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
+
+            for entry in data_object_contract_gross:
+                contract_id = entry[0][0]  # Ambil ID kontrak
+                product_name = entry[2][0]  # Ambil nama produk
+                product_price = entry[2][1]  # Ambil harga produk
+                product_months = entry[2][2]  # Ambil bulan produk
+
+                # Menjumlahkan harga produk berdasarkan bulan
+                for month in product_months:
+                    grouped_data[contract_id][product_name][month] += product_price
+
+            # Menulis ke Excel
             index_vertical = 5
-            data_contract = []
-            data_total_amount_sales = []
+            index_horizontal = 8
+            previous_contract_id = None  # Variabel untuk menyimpan contract_id sebelumnya
+
+            grand_total_monthly = defaultdict(float)
+
+            for contract_id, products in grouped_data.items():
+                # Jika contract_id berubah, tambahkan spasi 3 sel
+                if previous_contract_id is not None and previous_contract_id != contract_id:
+                    index_vertical += 3  # Menambah 3 sel ke bawah
+
+                monthly_totals = defaultdict(float)
 
 
-            for products in data_product_amount:
-                result_month_year = products[9]
-                contract_id = products[1]
-                sales_amount = products[10]
-                data_total_amount_sales.append((contract_id,result_month_year,sales_amount))
-                if int(products[1]) not in data_contract:
-                    if data_contract:
-                        index_vertical += 3
-                    data_contract.append(int(products[1]))
-
-
-                for product, last_price in zip(products[3],products[11]):
+                for product_name, month_data in products.items():
                     index_vertical += 1
                     cell_row = f'H{index_vertical}'
-                    worksheet.write(cell_row, product, role_format)
+                    worksheet.write(cell_row, product_name, role_format)  # Menulis nama produk
 
-                    months_not_in_month_shelter_sorted = [month for month in month_shelter_sorted if month not in result_month_year]
-                    for x_month in result_month_year:
-                        if x_month in month_shelter_sorted:
-                            month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
-                            cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
-                            worksheet.write(cell_combine, last_price, currency_format)
-
-                    for x_month in months_not_in_month_shelter_sorted:
-                        month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
+                    # Menulis harga total ke Excel untuk setiap bulan
+                    for month_year in month_shelter_sorted:
+                        price_product_final = month_data.get(month_year, 0)
+                        month_shelter_index = month_shelter_sorted.index(month_year) + 1 + index_horizontal
                         cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
-                        worksheet.write(cell_combine, 0, currency_format)
+                        worksheet.write(cell_combine, price_product_final, currency_format)  # Menulis total harga
+
+                        monthly_totals[month_year] += price_product_final
+
+                        grand_total_monthly[month_year] += price_product_final
+
+                # Menambahkan label "PLAN SUB TOTAL" di akhir setiap kontrak
+                index_vertical += 1
+                subtotal_cell_row = f'H{index_vertical}'
+                worksheet.write(subtotal_cell_row, "SUB TOTAL", title_format)
+                rab_cell_row = f'H{index_vertical + 1}'
+                worksheet.write(rab_cell_row, f'RAB SUB TOTAL {self.z_amount_percent_rab} %', title_format)
 
 
 
-
-            index_vertical = 5
-            index_horizontal = 8
-            data_contract_total = []
-            grand_total_per_month = {month: 0 for month in month_shelter_sorted}
-            for products in data_product_amount:
-                if int(products[1]) not in data_contract_total:
-                    data_product = [d[3] for d in data_product_amount if products[1] == d[1]]
-
-                    # print("data_product",data_product)
-                    data_product_final = []
-                    for d in data_product:
-                        print("product",d)
-                        for e in d:
-                            data_product_final.append(e)
-                    index_vertical = index_vertical + len(data_product_final) + 1
-                    if data_contract_total:
-                        index_vertical += 2
-                    data_contract_total.append(int(products[1]))
-
-                for x_month in products[9]:
-                    if x_month in month_shelter_sorted:
-                        product_amount_final = 0
-                        for p in data_product_amount:
-                            if p[1] == products[1] and x_month in p[9]:
-                                product_amount_final += float(p[10])
-
-                        grand_total_per_month[x_month] += product_amount_final
+                for month_year in month_shelter_sorted:
+                    subtotal_value = monthly_totals.get(month_year, 0)
 
 
-                        month_shelter_index = month_shelter_sorted.index(x_month) + 1 + index_horizontal
-                        print('month_shelter_index : ', month_shelter_index)
-                        print('index_vertical : ', index_vertical)
-                        cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
-                        worksheet.write(cell_combine, product_amount_final, currency_total_format)
 
-                        plan_rab_total = product_amount_final * self.z_amount_percent_rab / 100
-                        cell_plan = f'{get_column_letter(month_shelter_index)}{index_vertical + 1}'
-                        worksheet.write(cell_plan, plan_rab_total, currency_total_format)
+                    month_shelter_index = month_shelter_sorted.index(month_year) + 1 + index_horizontal
+                    subtotal_cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
+                    worksheet.write(subtotal_cell_combine, subtotal_value, currency_total_format)
+                    plan_rab_sub_total = self.z_amount_percent_rab / 100 * subtotal_value
+                    rab_cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical + 1}'
+                    worksheet.write(rab_cell_combine, plan_rab_sub_total, currency_total_format)
 
-                        #Label
-                        cell_desc_sub_total = f'H{index_vertical}'
-                        worksheet.write(cell_desc_sub_total, "SUB TOTAL", currency_total_format)
-                        cell_desc_sub_total = f'H{index_vertical + 1}'
-                        worksheet.write(cell_desc_sub_total, "PLAN RAB SUB TOTAL", currency_total_format)
 
-                        # months_not_in_x_month = [month for month in month_shelter_sorted if month not in products[9]]
-                        # for missing_month in months_not_in_x_month:
-                        #     month_shelter_index = month_shelter_sorted.index(missing_month) + 1 + index_horizontal
-                        #     cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
-                        #     worksheet.write(cell_combine, 0, currency_total_format)
-                        #     cell_plan_sub_total = f'{get_column_letter(month_shelter_index)}{index_vertical + 1}'
-                        #     worksheet.write(cell_plan_sub_total, 0, currency_total_format)
+
+                previous_contract_id = contract_id  # Update contract_id sebelumnya
+
+            index_vertical += 4 # Menambah 2 sel ke bawah
+            grand_total_cell_row = f'H{index_vertical}'
+            worksheet.write(grand_total_cell_row, "GRAND TOTAL", title_format)  # Menulis label "GRAND TOTAL"
+            rab_cell_row = f'H{index_vertical + 1}'
+            worksheet.write(rab_cell_row, f'RAB GRAND TOTAL {self.z_amount_percent_rab} %', title_format)
+
+            for month_year in month_shelter_sorted:
+                grand_total_value = grand_total_monthly.get(month_year, 0)
+                month_shelter_index = month_shelter_sorted.index(month_year) + 1 + index_horizontal
+                grand_total_cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
+                worksheet.write(grand_total_cell_combine, grand_total_value, currency_total_format)
+                rab_grand_total = self.z_amount_percent_rab / 100 * grand_total_value
+                rab_grand_total_cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical + 1}'
+                worksheet.write(rab_grand_total_cell_combine, rab_grand_total, currency_total_format)
 
 
 
@@ -336,22 +329,37 @@ class RabLoanRem(models.TransientModel):
 
 
 
-            # looping for  grand total
-            index_vertical += 3
-            cell_desc_grand_total = f'H{index_vertical}'
-            worksheet.write(cell_desc_grand_total, "GRAND TOTAL", currency_total_format)
-            cell_desc_grand_total = f'H{index_vertical + 1}'
-            worksheet.write(cell_desc_grand_total, "PLAN RAB GRAND TOTAL", currency_total_format)
 
 
-            for month, total in grand_total_per_month.items():
-                month_shelter_index = month_shelter_sorted.index(month) + 1 + index_horizontal
-                cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical}'
-                worksheet.write(cell_combine, total, currency_total_format)
 
-                cell_combine = f'{get_column_letter(month_shelter_index)}{index_vertical + 1}'
-                grand_total = total * self.z_amount_percent_rab / 100
-                worksheet.write(cell_combine, grand_total, currency_total_format)
+
+
+
+
+
+
+
+
+
+                # print("data Contract", data_contract)
+                        # print("data data_sales_order", data_sales_order)
+                        # print("data Porduct", data_product)
+                        # print("data data_product_price", data_product_price)
+                        # print("data term_paid_percentage", term_paid_percentage)
+                        # print("data price_paid", price_paid)
+                        # print("data gross_price", gross_price)
+                        # print("data product_month_year", product_month_year)
+                        # print("data final_price", final_price)
+                        # print("data data_product_final", data_product_final)
+
+                    # print("data_object_contract",data_object_contract)
+
+
+
+
+
+
+
 
 
 

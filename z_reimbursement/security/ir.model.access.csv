@@ -4,3 +4,4 @@ z_reimbursement.access_group_reimbursement,access_group_reimbursement,z_reimburs
 z_reimbursement.access_category_reimbursement,access_category_reimbursement,z_reimbursement.model_category_reimbursement,base.group_user,1,1,1,1
 z_reimbursement.access_rab_loan_rem,access_rab_loan_rem,z_reimbursement.model_rab_loan_rem,,1,1,1,1
 z_reimbursement.access_owl_todo_list,access_owl_todo_list,z_reimbursement.model_owl_todo_list,,1,1,1,1
+z_reimbursement.access_rab_loan_product,access_rab_loan_product,z_reimbursement.model_rab_loan_product,,1,1,1,1

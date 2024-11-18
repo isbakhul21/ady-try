@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+        <!-- [Rab Loan Form] -->
+        <record id="z_rab_product_loan_form" model="ir.ui.view">
+            <field name="name">rab.loan.form</field>
+            <field name="model">rab.loan.product</field>
+            <field name="priority" eval="10"/>
+            <field name="arch" type="xml">
+                <form string="Loan Management">
+                    <group>
+                        <group>
+                            <field name="z_partner_id" required="1" domain="[('is_company','=',True)]" force_save="1" widget="res_partner_many2one" context="{'res_partner_search_mode': 'customer', 'show_address': 1, 'show_vat': True}" options="{'limit': 10, 'no_create': true, 'create': false, 'create_edit': false, 'no_open':true}"/>
+                        </group>
+                        <group>
+                            <field name="z_amount_percent_rab" required="1"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="action_generate_loan_product" type="object" string="Generate" class="btn-primary" data-hotkey="q"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <!-- [Rab Loan Action] -->
+        <record id="z_action_product_rab_loan" model="ir.actions.act_window">
+            <field name="name">Rab PRODUCT LOAN</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">rab.loan.product</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_empty_folder">No data to display</p>
+                <p>Try to add some records, or make sure that there is at least one measure and no active filter in the search bar.</p>
+            </field>
+        </record>
+
+    </data>
+</odoo>
